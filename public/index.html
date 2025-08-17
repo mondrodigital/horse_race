@@ -936,12 +936,61 @@
                 updateStats();
                 updatePlayerRankings();
                 
-                // Show reset button for host
-                if (isHost) {
-                    setTimeout(() => {
-                        results.innerHTML += '<br><br>Host can reset for next game!';
-                    }, 2000);
-                }
+                // Auto-start next round after showing results
+                setTimeout(() => {
+                    results.innerHTML += '<br><br>🔄 Starting next round in 3 seconds...';
+                    
+                    // Countdown for next round
+                    let countdown = 3;
+                    const countdownInterval = setInterval(() => {
+                        countdown--;
+                        if (countdown > 0) {
+                            results.innerHTML = `🏆 ${getSuitName(winner)} WINS! 🏆<br><br>🔄 Starting next round in ${countdown} seconds...`;
+                        } else {
+                            clearInterval(countdownInterval);
+                            autoResetGame();
+                        }
+                    }, 1000);
+                }, 2000);
+            });
+
+            socket.on('gameReset', () => {
+                console.log('Game reset received from server');
+                
+                // Reset client-side game state
+                gameInProgress = false;
+                results.innerHTML = '';
+                currentCard.innerHTML = '?';
+                gameStats.cardsRemaining = 52;
+                
+                // Reset deck display
+                document.getElementById('deck-count').textContent = '52';
+                document.getElementById('cards-remaining').textContent = '52 cards remaining';
+                
+                updateStats();
+                
+                // Reset horse positions
+                const suits = ['hearts', 'diamonds', 'clubs', 'spades'];
+                suits.forEach(suit => {
+                    const horse = document.getElementById(`horse-${suit}`);
+                    if (horse) {
+                        horse.dataset.progress = '0';
+                        horse.style.left = '50px';
+                    }
+                });
+                
+                // Clear all player bets
+                players.forEach(player => {
+                    player.betSuit = null;
+                    player.betAmount = 0;
+                });
+                
+                // Show betting popup for next round
+                setTimeout(() => {
+                    bettingPopup.style.display = 'flex';
+                    updateBetStatus();
+                    checkAllBetsPlaced();
+                }, 500);
             });
         }
 
@@ -1000,6 +1049,11 @@
             results.innerHTML = '';
             currentCard.innerHTML = '?';
             gameStats.cardsRemaining = 52;
+            
+            // Reset deck display
+            document.getElementById('deck-count').textContent = '52';
+            document.getElementById('cards-remaining').textContent = '52 cards remaining';
+            
             updateStats();
             
             // Reset horse positions
@@ -1018,6 +1072,53 @@
                 updateBetStatus();
                 checkAllBetsPlaced();
             }, 1000);
+        }
+
+        function autoResetGame() {
+            console.log('Auto-resetting game for next round');
+            
+            // Stop autopilot if running
+            if (autopilotActive) {
+                toggleAutopilot();
+            }
+            
+            // Reset client-side game state
+            gameInProgress = false;
+            results.innerHTML = '';
+            currentCard.innerHTML = '?';
+            gameStats.cardsRemaining = 52;
+            
+            // Reset deck display
+            document.getElementById('deck-count').textContent = '52';
+            document.getElementById('cards-remaining').textContent = '52 cards remaining';
+            
+            updateStats();
+            
+            // Reset horse positions
+            const suits = ['hearts', 'diamonds', 'clubs', 'spades'];
+            suits.forEach(suit => {
+                const horse = document.getElementById(`horse-${suit}`);
+                if (horse) {
+                    horse.dataset.progress = '0';
+                    horse.style.left = '50px'; // Reset to starting position
+                }
+            });
+            
+            // Clear all player bets for next round
+            players.forEach(player => {
+                player.betSuit = null;
+                player.betAmount = 0;
+            });
+            
+            // Show betting popup for next round
+            bettingPopup.style.display = 'flex';
+            updateBetStatus();
+            checkAllBetsPlaced();
+            
+            // Emit server reset if host
+            if (isHost) {
+                socket.emit('resetGame');
+            }
         }
 
         function leaveRoom() {

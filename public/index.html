@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Horse Card Race</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(145deg, #1a5d3a, #0f4c3a);
+            font-family: 'Arial', sans-serif;
+            height: 100vh;
+            overflow: hidden;
+            color: white;
+        }
+
+        /* Login Popup */
+        #login-popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .popup {
+            background: linear-gradient(145deg, #1a5d3a, #0f4c3a);
+            border: 3px solid #d4af37;
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            color: white;
+            min-width: 500px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+        }
+
+        .popup h2 {
+            margin-bottom: 30px;
+            color: #d4af37;
+            font-size: 2em;
+        }
+
+        #avatar-options {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin: 25px 0;
+            flex-wrap: wrap;
+        }
+
+        .avatar-option {
+            font-size: 3em;
+            padding: 15px;
+            border: 3px solid transparent;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: rgba(0,0,0,0.2);
+        }
+
+        .avatar-option:hover,
+        .avatar-option.selected {
+            border-color: #d4af37;
+            background: rgba(212, 175, 55, 0.3);
+            transform: scale(1.1);
+        }
+
+        input {
+            width: 100%;
+            padding: 15px;
+            margin: 15px 0;
+            border: 2px solid #d4af37;
+            border-radius: 10px;
+            font-size: 18px;
+            background: rgba(255,255,255,0.9);
+        }
+
+        button {
+            padding: 15px 30px;
+            margin: 10px;
+            background: linear-gradient(145deg, #d4af37, #b8941f);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        button:hover {
+            background: linear-gradient(145deg, #b8941f, #d4af37);
+            transform: translateY(-2px);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Main Game Container */
+        #game-container {
+            display: none;
+            height: 100vh;
+            padding: 20px;
+            flex-direction: row;
+            gap: 25px;
+        }
+
+        /* Leaderboard */
+        #leaderboard {
+            width: 300px;
+            background: rgba(0,0,0,0.4);
+            border: 3px solid #d4af37;
+            border-radius: 20px;
+            padding: 25px;
+            overflow-y: auto;
+        }
+
+        #leaderboard h2 {
+            text-align: center;
+            color: #d4af37;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        #leaderboard h3 {
+            color: #d4af37;
+            margin: 15px 0 10px 0;
+            font-size: 1.1em;
+        }
+
+        .leaderboard-item {
+            background: rgba(255,255,255,0.1);
+            padding: 8px 12px;
+            margin: 5px 0;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* Main Game Area */
+        #main-game-area {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.05);
+            border: 3px solid #d4af37;
+            border-radius: 20px;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+
+        #main-game-area h1 {
+            color: #d4af37;
+            margin-bottom: 20px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        /* Card Area */
+        #card-area {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            margin-bottom: 30px;
+            background: rgba(0,0,0,0.3);
+            padding: 20px;
+            border-radius: 15px;
+            border: 2px solid #d4af37;
+        }
+
+        #card-deck {
+            width: 80px;
+            height: 120px;
+            border: 3px solid #333;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(145deg, #1a1a4d, #0f0f3a);
+            color: white;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        #card-deck:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+        }
+
+        #current-card {
+            width: 80px;
+            height: 120px;
+            border: 3px solid #333;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            color: black;
+            font-size: 1.2em;
+            font-weight: bold;
+            transition: all 0.5s;
+        }
+
+        .card-flip {
+            animation: cardFlip 0.6s ease-in-out;
+        }
+
+        @keyframes cardFlip {
+            0% { transform: rotateY(0deg); }
+            50% { transform: rotateY(90deg); }
+            100% { transform: rotateY(0deg); }
+        }
+
+        #cards-remaining {
+            font-size: 1.2em;
+            color: #d4af37;
+            margin: 0 20px;
+        }
+
+        /* Straight Race Track */
+        #race-track {
+            width: 1000px;
+            height: 400px;
+            position: relative;
+            margin: 20px auto;
+            background: linear-gradient(90deg, #228B22 0%, #8B4513 10%, #DEB887 50%, #8B4513 90%, #228B22 100%);
+            border: 4px solid #654321;
+            border-radius: 15px;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.3);
+            overflow: visible;
+        }
+
+        /* Track lanes */
+        .track-lane {
+            position: absolute;
+            width: 100%;
+            height: 90px;
+            border-bottom: 2px dashed rgba(255,255,255,0.3);
+            display: flex;
+            align-items: center;
+        }
+
+        .track-lane:nth-child(1) { top: 20px; }
+        .track-lane:nth-child(2) { top: 110px; }
+        .track-lane:nth-child(3) { top: 200px; }
+        .track-lane:nth-child(4) { top: 290px; }
+
+        /* Progress markers */
+        .progress-markers {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+        }
+
+        .progress-marker {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: rgba(255,255,255,0.4);
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            font-size: 0.7em;
+            color: rgba(255,255,255,0.8);
+            padding-bottom: 5px;
+        }
+
+        /* Finish line */
+        .finish-line {
+            position: absolute;
+            right: 20px;
+            top: 0;
+            bottom: 0;
+            width: 8px;
+            background: repeating-linear-gradient(
+                0deg,
+                #fff 0px,
+                #fff 12px,
+                #000 12px,
+                #000 24px
+            );
+            z-index: 5;
+            border-radius: 4px;
+        }
+
+        /* Horse cards - rotated 90 degrees */
+        .horse {
+            position: absolute;
+            width: 80px;
+            height: 60px;
+            background: white;
+            border: 3px solid #333;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1em;
+            z-index: 10;
+            left: 40px;
+            transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            box-shadow: 3px 3px 10px rgba(0,0,0,0.4);
+            gap: 8px;
+        }
+
+        .horse.hearts,
+        .horse.diamonds {
+            color: #e53e3e;
+            border-color: #e53e3e;
+        }
+
+        .horse.clubs,
+        .horse.spades {
+            color: #000;
+            border-color: #000;
+        }
+
+        /* Player rankings in leaderboard */
+        #player-rankings {
+            margin-bottom: 20px;
+        }
+
+        #ranked-players {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .ranked-player {
+            background: rgba(0,0,0,0.4);
+            border: 2px solid #d4af37;
+            border-radius: 10px;
+            padding: 12px;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9em;
+        }
+
+        .ranked-player.winner {
+            border-color: #4CAF50;
+            background: rgba(76, 175, 80, 0.2);
+        }
+
+        .ranked-player.loser {
+            border-color: #f44336;
+            background: rgba(244, 67, 54, 0.2);
+        }
+
+        .ranked-player .player-avatar {
+            font-size: 1.8em;
+            min-width: 35px;
+        }
+
+        .ranked-player .player-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .ranked-player .player-name {
+            font-weight: bold;
+            font-size: 1em;
+        }
+
+        .ranked-player .player-bet {
+            font-size: 0.8em;
+            opacity: 0.9;
+        }
+
+        .ranked-player .player-stats {
+            font-size: 0.75em;
+            opacity: 0.8;
+        }
+
+        /* Rank indicators */
+        .ranked-player .rank-badge {
+            background: #d4af37;
+            color: #000;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+
+        .ranked-player.winner .rank-badge {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .ranked-player.loser .rank-badge {
+            background: #f44336;
+            color: white;
+        }
+
+        /* Betting Popup */
+        #betting-popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .suit-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 25px 0;
+        }
+
+        .suit-button {
+            padding: 20px;
+            border: 3px solid #d4af37;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1.3em;
+            background: rgba(0,0,0,0.3);
+        }
+
+        .suit-button:hover,
+        .suit-button.selected {
+            background: rgba(212, 175, 55, 0.3);
+            transform: scale(1.05);
+        }
+
+        /* Results */
+        #results {
+            margin-top: 20px;
+            font-size: 1.5em;
+            color: #d4af37;
+            text-align: center;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        /* Host Controls */
+        .host-controls {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .host-controls button {
+            padding: 8px 15px;
+            font-size: 14px;
+        }
+
+        #bet-status-area {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            border: 1px solid #d4af37;
+        }
+
+        .bet-player {
+            margin: 5px 0;
+            padding: 5px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Popup -->
+    <div id="login-popup">
+        <div class="popup">
+            <h2>🏇 Horse Card Race 🏇</h2>
+            <h3>Choose your avatar:</h3>
+            <div id="avatar-options">
+                <span class="avatar-option" data-avatar="🧑‍💼">🧑‍💼</span>
+                <span class="avatar-option" data-avatar="👨‍🦰">👨‍🦰</span>
+                <span class="avatar-option" data-avatar="👩‍🦱">👩‍🦱</span>
+                <span class="avatar-option" data-avatar="🧔">🧔</span>
+                <span class="avatar-option" data-avatar="👩‍🦳">👩‍🦳</span>
+                <span class="avatar-option" data-avatar="🤠">🤠</span>
+                <span class="avatar-option" data-avatar="🕵️">🕵️</span>
+                <span class="avatar-option" data-avatar="👨‍🎓">👨‍🎓</span>
+            </div>
+            <input id="player-name" placeholder="Enter your name" maxlength="12">
+            <input id="room-id" placeholder="Enter Room ID to join existing room">
+            <div>
+                <button id="join-room">Join Room</button>
+                <button id="create-room">Create New Room</button>
+            </div>
+            
+            <!-- Room Sharing Section -->
+            <div id="room-share-section" style="display: none; margin-top: 20px; padding: 20px; background: rgba(212, 175, 55, 0.1); border: 2px solid #d4af37; border-radius: 15px;">
+                <h3 style="color: #d4af37; margin-bottom: 15px; text-align: center;">🔗 Share Your Room</h3>
+                <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap; justify-content: center;">
+                    <span style="color: #d4af37; font-weight: bold;">Room ID:</span>
+                    <code id="room-id-display" style="background: rgba(0,0,0,0.4); padding: 12px 20px; border-radius: 8px; color: #fff; font-family: 'Courier New', monospace; font-size: 18px; letter-spacing: 3px; font-weight: bold; border: 1px solid #d4af37;"></code>
+                    <button id="copy-room-id" style="background: #d4af37; color: #0f4c3a; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: all 0.3s; margin: 0;">📋 Copy ID</button>
+                </div>
+                <p style="color: #ccc; font-size: 14px; margin-top: 15px; text-align: center; font-style: italic;">
+                    Share this Room ID with friends so they can join your game!
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Betting Popup -->
+    <div id="betting-popup">
+        <div class="popup">
+            <h2>🎲 Place Your Bets! 🎲</h2>
+            <h3>Choose your suit:</h3>
+            <div class="suit-buttons">
+                <div class="suit-button" data-suit="hearts">♥️ HEARTS</div>
+                <div class="suit-button" data-suit="diamonds">♦️ DIAMONDS</div>
+                <div class="suit-button" data-suit="clubs">♣️ CLUBS</div>
+                <div class="suit-button" data-suit="spades">♠️ SPADES</div>
+            </div>
+            <input id="bet-amount" type="number" placeholder="Number of drinks" min="1" max="10" value="1">
+            <button id="place-bet">Place Bet</button>
+            <div id="bet-status-area">
+                <h4>Betting Status:</h4>
+                <div id="bet-status-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Game -->
+    <div id="game-container">
+        <!-- Leaderboard -->
+        <div id="leaderboard">
+            <h2>🏆 Player Rankings 🏆</h2>
+            
+            <!-- Player rankings by wins/losses -->
+            <div id="player-rankings">
+                <div id="ranked-players"></div>
+            </div>
+            
+
+        </div>
+
+        <!-- Main Game Area -->
+        <div id="main-game-area">
+            <div class="host-controls">
+                <button id="add-bot">Add Bot</button>
+                <button id="start-game" style="display: none;">Start Race!</button>
+                <button id="reset-game" style="display: none;">Reset</button>
+            </div>
+
+            <h1>🏇 Horse Card Race 🏇</h1>
+            
+            <!-- Card Area -->
+            <div id="card-area">
+                <div id="card-deck">
+                    <div>🂠</div>
+                    <div>DECK</div>
+                    <div id="deck-count">52</div>
+                </div>
+                <div id="current-card">?</div>
+                <div id="cards-remaining">52 cards remaining</div>
+            </div>
+
+            <!-- Straight Race Track -->
+            <div id="race-track">
+                <!-- Track lanes and horses will be created by JavaScript -->
+            </div>
+            
+            <div id="results"></div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        // Game state
+        const socket = io();
+        let selectedAvatar = null;
+        let selectedSuit = null;
+        let currentRoomId = null;
+        let isHost = false;
+        let gameInProgress = false;
+        let players = [];
+        let gameStats = {
+            totalGames: 0,
+            cardsRemaining: 52,
+            horseWins: { hearts: 0, diamonds: 0, clubs: 0, spades: 0 },
+            playerStats: {} // playerId: { wins: 0, losses: 0 }
+        };
+
+        // Elements
+        const loginPopup = document.getElementById('login-popup');
+        const bettingPopup = document.getElementById('betting-popup');
+        const gameContainer = document.getElementById('game-container');
+        const playerNameInput = document.getElementById('player-name');
+        const roomIdInput = document.getElementById('room-id');
+        const raceTrack = document.getElementById('race-track');
+        const currentCard = document.getElementById('current-card');
+        const results = document.getElementById('results');
+        const playerSeats = document.getElementById('player-seats');
+        const betStatusList = document.getElementById('bet-status-list');
+
+        // Initialize
+        init();
+
+        function init() {
+            setupEventListeners();
+            setupStraightTrack();
+            updateStats();
+        }
+
+        function setupEventListeners() {
+            // Avatar selection
+            document.querySelectorAll('.avatar-option').forEach(option => {
+                option.addEventListener('click', () => {
+                    document.querySelectorAll('.avatar-option').forEach(o => o.classList.remove('selected'));
+                    option.classList.add('selected');
+                    selectedAvatar = option.dataset.avatar;
+                });
+            });
+
+            // Suit selection
+            document.querySelectorAll('.suit-button').forEach(button => {
+                button.addEventListener('click', () => {
+                    document.querySelectorAll('.suit-button').forEach(b => b.classList.remove('selected'));
+                    button.classList.add('selected');
+                    selectedSuit = button.dataset.suit;
+                });
+            });
+
+            // Room controls
+            document.getElementById('create-room').addEventListener('click', createRoom);
+            document.getElementById('join-room').addEventListener('click', joinRoom);
+            document.getElementById('place-bet').addEventListener('click', placeBet);
+            document.getElementById('add-bot').addEventListener('click', () => socket.emit('addBot'));
+            document.getElementById('start-game').addEventListener('click', startGame);
+            document.getElementById('reset-game').addEventListener('click', resetGame);
+
+            // Card deck click
+            document.getElementById('card-deck').addEventListener('click', () => {
+                if (isHost && gameInProgress) {
+                    socket.emit('dealCard');
+                }
+            });
+
+            // Socket events
+            setupSocketEvents();
+        }
+
+        function setupSocketEvents() {
+            socket.on('roomCreated', (roomId) => {
+                currentRoomId = roomId;
+                roomIdInput.value = roomId;
+                
+                // Show and populate room sharing section
+                const roomIdDisplay = document.getElementById('room-id-display');
+                const roomShareSection = document.getElementById('room-share-section');
+                roomIdDisplay.textContent = roomId;
+                roomShareSection.style.display = 'block';
+                
+                const playerName = playerNameInput.value || 'Anonymous';
+                socket.emit('joinRoom', { roomId, name: playerName, avatar: selectedAvatar });
+            });
+
+            socket.on('roomJoined', (roomId, playersData, hostId) => {
+                currentRoomId = roomId;
+                isHost = socket.id === hostId;
+                players = playersData;
+                
+                loginPopup.style.display = 'none';
+                gameContainer.style.display = 'flex';
+                
+                updatePlayers();
+                showHostControls();
+                
+                setTimeout(() => {
+                    bettingPopup.style.display = 'flex';
+                    updateBetStatus();
+                    checkAllBetsPlaced(); // Check bet status when popup opens
+                }, 500);
+            });
+
+            socket.on('playerJoined', (playersData) => {
+                players = playersData;
+                updatePlayerRankings();
+                updateBetStatus();
+            });
+
+            socket.on('betPlaced', (playersData) => {
+                players = playersData;
+                updatePlayerRankings();
+                updateBetStatus();
+                checkAllBetsPlaced();
+                
+                // If this player just placed a bet, show result
+                const currentPlayer = players.find(p => p.id === socket.id);
+                if (currentPlayer && currentPlayer.betSuit) {
+                    results.innerHTML = `✅ Bet placed: ${getSuitSymbol(currentPlayer.betSuit)} ${currentPlayer.betAmount} drinks`;
+                }
+            });
+
+            socket.on('gameStarted', () => {
+                gameInProgress = true;
+                bettingPopup.style.display = 'none';
+                results.innerHTML = '🏁 Race in progress... Host: Click deck to deal cards!';
+                gameStats.cardsRemaining = 52;
+                updateStats();
+                
+                // Enable deck for host
+                if (isHost) {
+                    document.getElementById('card-deck').style.cursor = 'pointer';
+                    document.getElementById('card-deck').style.opacity = '1';
+                } else {
+                    document.getElementById('card-deck').style.cursor = 'not-allowed';
+                    document.getElementById('card-deck').style.opacity = '0.5';
+                }
+            });
+
+            socket.on('cardDrawn', (cardData) => {
+                animateCardFlip(cardData);
+                moveHorse(cardData.suit);
+                gameStats.cardsRemaining--;
+                updateStats();
+            });
+
+            socket.on('gameEnded', (winner) => {
+                gameInProgress = false;
+                results.innerHTML = `🏆 ${winner.toUpperCase()} WINS! 🏆`;
+                gameStats.totalGames++;
+                gameStats.horseWins[winner]++;
+                
+                // Update player win/loss stats
+                players.forEach(player => {
+                    if (!gameStats.playerStats[player.id]) {
+                        gameStats.playerStats[player.id] = { wins: 0, losses: 0 };
+                    }
+                    
+                    if (player.betSuit === winner) {
+                        gameStats.playerStats[player.id].wins++;
+                    } else if (player.betSuit) {
+                        gameStats.playerStats[player.id].losses++;
+                    }
+                });
+                
+                updateStats();
+                updatePlayerRankings();
+                
+                // Show reset button for host
+                if (isHost) {
+                    setTimeout(() => {
+                        results.innerHTML += '<br><br>Host can reset for next game!';
+                    }, 2000);
+                }
+            });
+        }
+
+        function createRoom() {
+            if (!selectedAvatar) {
+                alert('Please select an avatar!');
+                return;
+            }
+            const playerName = playerNameInput.value || 'Anonymous';
+            socket.emit('createRoom', { name: playerName, avatar: selectedAvatar });
+        }
+
+        function joinRoom() {
+            if (!selectedAvatar) {
+                alert('Please select an avatar!');
+                return;
+            }
+            const roomId = roomIdInput.value;
+            if (!roomId) {
+                alert('Please enter a room ID!');
+                return;
+            }
+            const playerName = playerNameInput.value || 'Anonymous';
+            socket.emit('joinRoom', { roomId, name: playerName, avatar: selectedAvatar });
+        }
+
+        function placeBet() {
+            if (!selectedSuit) {
+                alert('Please select a suit!');
+                return;
+            }
+            const betAmount = document.getElementById('bet-amount').value || 1;
+            socket.emit('placeBet', { suit: selectedSuit, amount: parseInt(betAmount) });
+            
+            // Close betting popup after placing bet
+            bettingPopup.style.display = 'none';
+        }
+
+        function startGame() {
+            const allPlayersHaveBets = players.every(player => player.betSuit);
+            if (!allPlayersHaveBets) {
+                alert('All players must place bets before starting!');
+                return;
+            }
+            socket.emit('startGame');
+        }
+
+        function resetGame() {
+            socket.emit('resetGame');
+            gameInProgress = false;
+            results.innerHTML = '';
+            currentCard.innerHTML = '?';
+            gameStats.cardsRemaining = 52;
+            updateStats();
+            
+            // Reset horse positions
+            const suits = ['hearts', 'diamonds', 'clubs', 'spades'];
+            suits.forEach(suit => {
+                const horse = document.getElementById(`horse-${suit}`);
+                if (horse) {
+                    horse.dataset.progress = '0';
+                    horse.style.left = '50px'; // Reset to starting position
+                }
+            });
+            
+            // Show betting popup again
+            setTimeout(() => {
+                bettingPopup.style.display = 'flex';
+                updateBetStatus();
+            }, 1000);
+        }
+
+        function setupStraightTrack() {
+            const suits = ['hearts', 'diamonds', 'clubs', 'spades'];
+            const suitSymbols = { hearts: '♥️', diamonds: '♦️', clubs: '♣️', spades: '♠️' };
+            const totalPositions = 10; // 10 cards to win
+            const trackWidth = 900; // 1000px track minus margins
+            
+            // Clear track
+            raceTrack.innerHTML = '';
+            
+            // Create progress markers
+            const progressMarkers = document.createElement('div');
+            progressMarkers.className = 'progress-markers';
+            for (let i = 1; i <= totalPositions; i++) {
+                const marker = document.createElement('div');
+                marker.className = 'progress-marker';
+                marker.style.left = `${50 + (i * (trackWidth / totalPositions))}px`;
+                marker.textContent = i;
+                progressMarkers.appendChild(marker);
+            }
+            raceTrack.appendChild(progressMarkers);
+            
+            // Create finish line at position 10
+            const finishLine = document.createElement('div');
+            finishLine.className = 'finish-line';
+            finishLine.style.left = `${50 + (10 * (trackWidth / totalPositions))}px`;
+            raceTrack.appendChild(finishLine);
+            
+            // Create track lanes
+            suits.forEach((suit, index) => {
+                const lane = document.createElement('div');
+                lane.className = 'track-lane';
+                lane.style.top = `${20 + index * 90}px`;
+                raceTrack.appendChild(lane);
+            });
+            
+            // Create horses for each suit
+            suits.forEach((suit, index) => {
+                const horse = document.createElement('div');
+                horse.className = `horse ${suit}`;
+                horse.id = `horse-${suit}`;
+                horse.dataset.progress = '0';
+                horse.style.top = `${35 + index * 90}px`;
+                horse.innerHTML = `${suitSymbols[suit]} 🐎`;
+                
+                raceTrack.appendChild(horse);
+            });
+        }
+
+        function updatePlayers() {
+            updatePlayerRankings();
+        }
+
+        function updatePlayerRankings() {
+            const rankedPlayersDiv = document.getElementById('ranked-players');
+            rankedPlayersDiv.innerHTML = '';
+            
+            // Sort players by wins (descending), then by losses (ascending)
+            const sortedPlayers = [...players].sort((a, b) => {
+                const aStats = gameStats.playerStats[a.id] || { wins: 0, losses: 0 };
+                const bStats = gameStats.playerStats[b.id] || { wins: 0, losses: 0 };
+                
+                // First by wins (more wins = better rank)
+                if (aStats.wins !== bStats.wins) {
+                    return bStats.wins - aStats.wins;
+                }
+                // Then by losses (fewer losses = better rank)
+                return aStats.losses - bStats.losses;
+            });
+            
+            sortedPlayers.forEach((player, index) => {
+                const playerDiv = document.createElement('div');
+                playerDiv.className = 'ranked-player';
+                
+                const stats = gameStats.playerStats[player.id] || { wins: 0, losses: 0 };
+                const rank = index + 1;
+                
+                // Determine player type
+                if (stats.wins > stats.losses) {
+                    playerDiv.classList.add('winner');
+                } else if (stats.losses > stats.wins && stats.losses > 0) {
+                    playerDiv.classList.add('loser');
+                }
+                
+                // Create bet display
+                let betDisplay = 'No bet';
+                if (player.betSuit) {
+                    betDisplay = `Bet: ${getSuitSymbol(player.betSuit)} ${player.betAmount}`;
+                }
+                
+                playerDiv.innerHTML = `
+                    <div class="rank-badge">${rank}</div>
+                    <div class="player-avatar">${player.avatar}</div>
+                    <div class="player-info">
+                        <div class="player-name">${player.name}</div>
+                        <div class="player-bet">${betDisplay}</div>
+                        <div class="player-stats">${stats.wins}W - ${stats.losses}L</div>
+                    </div>
+                `;
+                
+                rankedPlayersDiv.appendChild(playerDiv);
+            });
+        }
+
+        function updateBetStatus() {
+            betStatusList.innerHTML = '';
+            players.forEach(player => {
+                const playerDiv = document.createElement('div');
+                playerDiv.className = 'bet-player';
+                if (player.betSuit) {
+                    playerDiv.innerHTML = `${player.avatar} ${player.name}: ${getSuitSymbol(player.betSuit)} ${player.betAmount} drinks`;
+                    playerDiv.style.color = '#4CAF50';
+                } else {
+                    playerDiv.innerHTML = `${player.avatar} ${player.name}: Waiting...`;
+                    playerDiv.style.color = '#f44336';
+                }
+                betStatusList.appendChild(playerDiv);
+            });
+        }
+
+        function checkAllBetsPlaced() {
+            const allPlayersHaveBets = players.every(player => player.betSuit);
+            if (allPlayersHaveBets) {
+                // All players have bet - show ready message
+                results.innerHTML = '🎯 All bets placed! ' + (isHost ? 'Click Start Race!' : 'Waiting for host to start...');
+                
+                if (isHost) {
+                    document.getElementById('start-game').disabled = false;
+                    document.getElementById('start-game').textContent = 'Start Race!';
+                    document.getElementById('start-game').style.background = 'linear-gradient(145deg, #4CAF50, #45a049)';
+                }
+            } else {
+                // Still waiting for bets
+                const waitingCount = players.filter(p => !p.betSuit).length;
+                results.innerHTML = `⏳ Waiting for ${waitingCount} more player${waitingCount > 1 ? 's' : ''} to bet...`;
+                
+                if (isHost) {
+                    document.getElementById('start-game').disabled = true;
+                    document.getElementById('start-game').textContent = 'Waiting for bets...';
+                    document.getElementById('start-game').style.background = 'linear-gradient(145deg, #d4af37, #b8941f)';
+                }
+            }
+        }
+
+        function showHostControls() {
+            if (isHost) {
+                document.getElementById('start-game').style.display = 'inline-block';
+                document.getElementById('reset-game').style.display = 'inline-block';
+                document.getElementById('start-game').disabled = true;
+                document.getElementById('start-game').textContent = 'Waiting for bets...';
+                
+                // Add visual indicator for disabled state
+                document.getElementById('start-game').style.opacity = '0.6';
+            }
+        }
+
+        function animateCardFlip(cardData) {
+            const suitColors = { hearts: '#e53e3e', diamonds: '#e53e3e', clubs: '#000', spades: '#000' };
+            
+            currentCard.classList.add('card-flip');
+            currentCard.style.color = suitColors[cardData.suit];
+            currentCard.innerHTML = `${cardData.rank}<br>${getSuitSymbol(cardData.suit)}`;
+            
+            gameStats.cardsRemaining--;
+            document.getElementById('deck-count').textContent = gameStats.cardsRemaining;
+            document.getElementById('cards-remaining').textContent = `${gameStats.cardsRemaining} cards remaining`;
+            
+            setTimeout(() => {
+                currentCard.classList.remove('card-flip');
+            }, 600);
+        }
+
+        function moveHorse(suit) {
+            const horse = document.getElementById(`horse-${suit}`);
+            if (horse) {
+                const progress = parseInt(horse.dataset.progress) + 1;
+                horse.dataset.progress = progress;
+                
+                // Calculate new position along straight track
+                const trackWidth = 900; // 1000px track minus margins
+                const newPosition = 50 + (progress * (trackWidth / 10));
+                
+                // Animate horse movement
+                gsap.to(horse, {
+                    left: `${newPosition}px`,
+                    duration: 0.8,
+                    ease: "power2.out"
+                });
+                
+                // Add bounce animation
+                gsap.to(horse, { 
+                    y: -15, 
+                    duration: 0.3, 
+                    yoyo: true, 
+                    repeat: 1,
+                    ease: "power2.out"
+                });
+                
+                // Check for winner
+                if (progress >= 10) {
+                    setTimeout(() => {
+                        socket.emit('gameWon', suit);
+                    }, 1000);
+                }
+            }
+        }
+
+        function updateStats() {
+            document.getElementById('total-games').textContent = gameStats.totalGames;
+            document.getElementById('cards-left').textContent = gameStats.cardsRemaining;
+            
+            // Update hot horses
+            const hotHorsesDiv = document.getElementById('hot-horses');
+            hotHorsesDiv.innerHTML = '';
+            Object.entries(gameStats.horseWins).forEach(([suit, wins]) => {
+                const item = document.createElement('div');
+                item.className = 'leaderboard-item';
+                item.innerHTML = `${getSuitSymbol(suit)} ${suit.toUpperCase()} <span>${wins} wins</span>`;
+                hotHorsesDiv.appendChild(item);
+            });
+        }
+
+        function updateLeaderboards() {
+            // Update based on game results
+            // This would be enhanced with actual player win/loss tracking
+        }
+
+        function getSuitSymbol(suit) {
+            const symbols = { hearts: '♥️', diamonds: '♦️', clubs: '♣️', spades: '♠️' };
+            return symbols[suit] || '?';
+        }
+
+        // Copy room ID functionality
+        const copyButton = document.getElementById('copy-room-id');
+        if (copyButton) {
+            copyButton.addEventListener('click', async () => {
+                const roomIdDisplay = document.getElementById('room-id-display');
+                const roomId = roomIdDisplay.textContent;
+                
+                try {
+                    await navigator.clipboard.writeText(roomId);
+                    copyButton.textContent = '✅ Copied!';
+                    copyButton.style.background = '#28a745';
+                    setTimeout(() => {
+                        copyButton.textContent = '📋 Copy ID';
+                        copyButton.style.background = '#d4af37';
+                    }, 2000);
+                } catch (err) {
+                    // Fallback for older browsers
+                    const textArea = document.createElement('textarea');
+                    textArea.value = roomId;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                    
+                    copyButton.textContent = '✅ Copied!';
+                    copyButton.style.background = '#28a745';
+                    setTimeout(() => {
+                        copyButton.textContent = '📋 Copy ID';
+                        copyButton.style.background = '#d4af37';
+                    }, 2000);
+                }
+            });
+        }
+
+        console.log('Full Horse Card Race Game initialized');
+    </script>
+</body>
+</html>

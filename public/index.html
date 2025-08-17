@@ -579,6 +579,15 @@
                 <button id="reset-game" style="display: none;">Reset</button>
             </div>
 
+            <!-- Room ID Display in Game -->
+            <div id="game-room-display" style="background: rgba(212, 175, 55, 0.1); border: 2px solid #d4af37; border-radius: 10px; padding: 10px 20px; margin-bottom: 20px; display: none;">
+                <div style="display: flex; align-items: center; gap: 15px; justify-content: center; flex-wrap: wrap;">
+                    <span style="color: #d4af37; font-weight: bold;">🔗 Room ID:</span>
+                    <code id="game-room-id" style="background: rgba(0,0,0,0.4); padding: 8px 15px; border-radius: 5px; color: #fff; font-family: 'Courier New', monospace; font-size: 16px; letter-spacing: 2px; font-weight: bold; border: 1px solid #d4af37;"></code>
+                    <button id="copy-game-room-id" style="background: #d4af37; color: #0f4c3a; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; transition: all 0.3s; margin: 0; font-size: 14px;">📋 Copy</button>
+                </div>
+            </div>
+
             <h1>🏇 Horse Card Race 🏇</h1>
             
             <!-- Card Area -->
@@ -697,6 +706,12 @@
                 currentRoomId = roomId;
                 isHost = socket.id === hostId;
                 players = playersData;
+                
+                // Show room ID in game interface
+                const gameRoomDisplay = document.getElementById('game-room-display');
+                const gameRoomId = document.getElementById('game-room-id');
+                gameRoomId.textContent = roomId;
+                gameRoomDisplay.style.display = 'block';
                 
                 loginPopup.style.display = 'none';
                 gameContainer.style.display = 'flex';
@@ -1085,7 +1100,7 @@
             return symbols[suit] || '?';
         }
 
-        // Copy room ID functionality
+        // Copy room ID functionality (login popup)
         const copyButton = document.getElementById('copy-room-id');
         if (copyButton) {
             copyButton.addEventListener('click', async () => {
@@ -1114,6 +1129,40 @@
                     setTimeout(() => {
                         copyButton.textContent = '📋 Copy ID';
                         copyButton.style.background = '#d4af37';
+                    }, 2000);
+                }
+            });
+        }
+
+        // Copy room ID functionality (game interface)
+        const copyGameButton = document.getElementById('copy-game-room-id');
+        if (copyGameButton) {
+            copyGameButton.addEventListener('click', async () => {
+                const gameRoomId = document.getElementById('game-room-id');
+                const roomId = gameRoomId.textContent;
+                
+                try {
+                    await navigator.clipboard.writeText(roomId);
+                    copyGameButton.textContent = '✅ Copied!';
+                    copyGameButton.style.background = '#28a745';
+                    setTimeout(() => {
+                        copyGameButton.textContent = '📋 Copy';
+                        copyGameButton.style.background = '#d4af37';
+                    }, 2000);
+                } catch (err) {
+                    // Fallback for older browsers
+                    const textArea = document.createElement('textarea');
+                    textArea.value = roomId;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                    
+                    copyGameButton.textContent = '✅ Copied!';
+                    copyGameButton.style.background = '#28a745';
+                    setTimeout(() => {
+                        copyGameButton.textContent = '📋 Copy';
+                        copyGameButton.style.background = '#d4af37';
                     }, 2000);
                 }
             });

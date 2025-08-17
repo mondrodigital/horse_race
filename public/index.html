@@ -915,7 +915,15 @@
             });
 
             socket.on('gameEnded', (winner) => {
+                console.log('Game ended, winner:', winner);
                 gameInProgress = false;
+                
+                // Stop autopilot when game ends
+                if (autopilotActive) {
+                    console.log('Stopping autopilot because game ended');
+                    toggleAutopilot();
+                }
+                
                 results.innerHTML = `🏆 ${getSuitName(winner)} WINS! 🏆`;
                 gameStats.totalGames++;
                 gameStats.horseWins[winner]++;
@@ -936,22 +944,26 @@
                 updateStats();
                 updatePlayerRankings();
                 
-                // Auto-start next round after showing results
-                setTimeout(() => {
-                    results.innerHTML += '<br><br>🔄 Starting next round in 3 seconds...';
-                    
-                    // Countdown for next round
-                    let countdown = 3;
-                    const countdownInterval = setInterval(() => {
-                        countdown--;
-                        if (countdown > 0) {
-                            results.innerHTML = `🏆 ${getSuitName(winner)} WINS! 🏆<br><br>🔄 Starting next round in ${countdown} seconds...`;
-                        } else {
-                            clearInterval(countdownInterval);
-                            autoResetGame();
-                        }
-                    }, 1000);
-                }, 2000);
+                // Auto-start next round after showing results (only for host)
+                if (isHost) {
+                    console.log('Host will trigger auto-reset');
+                    setTimeout(() => {
+                        results.innerHTML = `🏆 ${getSuitName(winner)} WINS! 🏆<br><br>🔄 Starting next round in 3 seconds...`;
+                        
+                        // Countdown for next round
+                        let countdown = 3;
+                        const countdownInterval = setInterval(() => {
+                            countdown--;
+                            if (countdown > 0) {
+                                results.innerHTML = `🏆 ${getSuitName(winner)} WINS! 🏆<br><br>🔄 Starting next round in ${countdown} seconds...`;
+                            } else {
+                                clearInterval(countdownInterval);
+                                console.log('Triggering auto-reset');
+                                resetGame(); // Use the regular reset function that emits to server
+                            }
+                        }, 1000);
+                    }, 2000);
+                }
             });
 
             socket.on('gameReset', () => {
@@ -979,18 +991,12 @@
                     }
                 });
                 
-                // Clear all player bets
-                players.forEach(player => {
-                    player.betSuit = null;
-                    player.betAmount = 0;
-                });
+                console.log('Showing betting popup after game reset');
                 
-                // Show betting popup for next round
-                setTimeout(() => {
-                    bettingPopup.style.display = 'flex';
-                    updateBetStatus();
-                    checkAllBetsPlaced();
-                }, 500);
+                // Show betting popup for next round immediately
+                bettingPopup.style.display = 'flex';
+                updateBetStatus();
+                checkAllBetsPlaced();
             });
         }
 
@@ -1074,52 +1080,7 @@
             }, 1000);
         }
 
-        function autoResetGame() {
-            console.log('Auto-resetting game for next round');
-            
-            // Stop autopilot if running
-            if (autopilotActive) {
-                toggleAutopilot();
-            }
-            
-            // Reset client-side game state
-            gameInProgress = false;
-            results.innerHTML = '';
-            currentCard.innerHTML = '?';
-            gameStats.cardsRemaining = 52;
-            
-            // Reset deck display
-            document.getElementById('deck-count').textContent = '52';
-            document.getElementById('cards-remaining').textContent = '52 cards remaining';
-            
-            updateStats();
-            
-            // Reset horse positions
-            const suits = ['hearts', 'diamonds', 'clubs', 'spades'];
-            suits.forEach(suit => {
-                const horse = document.getElementById(`horse-${suit}`);
-                if (horse) {
-                    horse.dataset.progress = '0';
-                    horse.style.left = '50px'; // Reset to starting position
-                }
-            });
-            
-            // Clear all player bets for next round
-            players.forEach(player => {
-                player.betSuit = null;
-                player.betAmount = 0;
-            });
-            
-            // Show betting popup for next round
-            bettingPopup.style.display = 'flex';
-            updateBetStatus();
-            checkAllBetsPlaced();
-            
-            // Emit server reset if host
-            if (isHost) {
-                socket.emit('resetGame');
-            }
-        }
+
 
         function leaveRoom() {
             if (confirm('Are you sure you want to leave the room?')) {
@@ -1326,8 +1287,20 @@
             const toggleButton = document.getElementById('autopilot-toggle');
             const countdownDiv = document.getElementById('autopilot-countdown');
             
+            console.log('Toggle autopilot called, current state:', autopilotActive);
+            
             if (!autopilotActive) {
                 // Start autopilot
+                if (!isHost) {
+                    alert('Only the host can control autopilot!');
+                    return;
+                }
+                if (!gameInProgress) {
+                    alert('Game must be in progress to use autopilot!');
+                    return;
+                }
+                
+                console.log('Starting autopilot');
                 autopilotActive = true;
                 toggleButton.textContent = '⏸️ Auto';
                 toggleButton.style.background = '#dc3545';
@@ -1335,6 +1308,7 @@
                 startAutopilotCountdown();
             } else {
                 // Stop autopilot
+                console.log('Stopping autopilot');
                 autopilotActive = false;
                 toggleButton.textContent = '▶️ Auto';
                 toggleButton.style.background = '#28a745';
@@ -1348,16 +1322,30 @@
             countdownValue = 5;
             const countdownDiv = document.getElementById('autopilot-countdown');
             
+            console.log('Starting autopilot countdown');
+            
             const updateCountdown = () => {
+                if (!autopilotActive) {
+                    console.log('Autopilot deactivated, stopping countdown');
+                    clearInterval(countdownInterval);
+                    return;
+                }
+                
                 countdownDiv.textContent = countdownValue;
+                console.log('Autopilot countdown:', countdownValue);
                 countdownValue--;
                 
                 if (countdownValue < 0) {
                     // Deal card and reset countdown
                     if (isHost && gameInProgress && autopilotActive) {
+                        console.log('Autopilot dealing card');
                         socket.emit('dealCard');
+                        countdownValue = 5;
+                    } else {
+                        console.log('Cannot deal card:', { isHost, gameInProgress, autopilotActive });
+                        // Stop autopilot if conditions aren't met
+                        toggleAutopilot();
                     }
-                    countdownValue = 5;
                 }
             };
             

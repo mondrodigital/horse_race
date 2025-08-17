@@ -561,6 +561,15 @@
     <div id="game-container">
         <!-- Leaderboard -->
         <div id="leaderboard">
+            <!-- Room ID Display -->
+            <div id="leaderboard-room-display" style="background: rgba(212, 175, 55, 0.1); border: 2px solid #d4af37; border-radius: 10px; padding: 15px; margin-bottom: 20px; display: none;">
+                <h3 style="color: #d4af37; margin-bottom: 10px; text-align: center;">🔗 Room Code</h3>
+                <div style="display: flex; align-items: center; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                    <code id="leaderboard-room-id" style="background: rgba(0,0,0,0.4); padding: 8px 12px; border-radius: 5px; color: #fff; font-family: 'Courier New', monospace; font-size: 16px; letter-spacing: 2px; font-weight: bold; border: 1px solid #d4af37;"></code>
+                    <button id="copy-leaderboard-room-id" style="background: #d4af37; color: #0f4c3a; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-weight: bold; transition: all 0.3s; margin: 0; font-size: 12px;">📋</button>
+                </div>
+            </div>
+
             <h2>🏆 Player Rankings 🏆</h2>
             
             <!-- Player rankings by wins/losses -->
@@ -577,16 +586,19 @@
                 <button id="add-bot">Add Bot</button>
                 <button id="start-game" style="display: none;">Start Race!</button>
                 <button id="reset-game" style="display: none;">Reset</button>
-            </div>
-
-            <!-- Room ID Display in Game -->
-            <div id="game-room-display" style="background: rgba(212, 175, 55, 0.1); border: 2px solid #d4af37; border-radius: 10px; padding: 10px 20px; margin-bottom: 20px; display: none;">
-                <div style="display: flex; align-items: center; gap: 15px; justify-content: center; flex-wrap: wrap;">
-                    <span style="color: #d4af37; font-weight: bold;">🔗 Room ID:</span>
-                    <code id="game-room-id" style="background: rgba(0,0,0,0.4); padding: 8px 15px; border-radius: 5px; color: #fff; font-family: 'Courier New', monospace; font-size: 16px; letter-spacing: 2px; font-weight: bold; border: 1px solid #d4af37;"></code>
-                    <button id="copy-game-room-id" style="background: #d4af37; color: #0f4c3a; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; transition: all 0.3s; margin: 0; font-size: 14px;">📋 Copy</button>
+                
+                <!-- Autopilot Controls -->
+                <div id="autopilot-controls" style="display: none; margin-top: 15px; padding: 15px; background: rgba(212, 175, 55, 0.1); border: 2px solid #d4af37; border-radius: 10px;">
+                    <h4 style="color: #d4af37; margin-bottom: 10px; text-align: center;">🤖 Autopilot Mode</h4>
+                    <div style="display: flex; align-items: center; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                        <button id="autopilot-toggle" style="background: #28a745; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold;">▶️ Start</button>
+                        <div id="autopilot-countdown" style="background: rgba(0,0,0,0.4); padding: 8px 15px; border-radius: 5px; color: #fff; font-family: 'Courier New', monospace; font-size: 16px; font-weight: bold; border: 1px solid #d4af37; display: none;">5</div>
+                    </div>
+                    <p style="color: #ccc; font-size: 12px; margin-top: 8px; text-align: center;">Auto-deals cards every 5 seconds</p>
                 </div>
             </div>
+
+
 
             <h1>🏇 Horse Card Race 🏇</h1>
             
@@ -675,6 +687,7 @@
             document.getElementById('add-bot').addEventListener('click', () => socket.emit('addBot'));
             document.getElementById('start-game').addEventListener('click', startGame);
             document.getElementById('reset-game').addEventListener('click', resetGame);
+            document.getElementById('autopilot-toggle').addEventListener('click', toggleAutopilot);
 
             // Card deck click
             document.getElementById('card-deck').addEventListener('click', () => {
@@ -710,11 +723,11 @@
                 isHost = socket.id === hostId;
                 players = playersData;
                 
-                // Show room ID in game interface
-                const gameRoomDisplay = document.getElementById('game-room-display');
-                const gameRoomId = document.getElementById('game-room-id');
-                gameRoomId.textContent = roomId;
-                gameRoomDisplay.style.display = 'block';
+                // Show room ID in leaderboard
+                const leaderboardRoomDisplay = document.getElementById('leaderboard-room-display');
+                const leaderboardRoomId = document.getElementById('leaderboard-room-id');
+                leaderboardRoomId.textContent = roomId;
+                leaderboardRoomDisplay.style.display = 'block';
                 
                 loginPopup.style.display = 'none';
                 gameContainer.style.display = 'flex';
@@ -858,6 +871,11 @@
         }
 
         function resetGame() {
+            // Stop autopilot if running
+            if (autopilotActive) {
+                toggleAutopilot();
+            }
+            
             socket.emit('resetGame');
             gameInProgress = false;
             results.innerHTML = '';
@@ -875,10 +893,11 @@
                 }
             });
             
-            // Show betting popup again
+            // Show betting popup again after reset
             setTimeout(() => {
                 bettingPopup.style.display = 'flex';
                 updateBetStatus();
+                checkAllBetsPlaced();
             }, 1000);
         }
 
@@ -1031,10 +1050,60 @@
                 document.getElementById('reset-game').style.display = 'inline-block';
                 document.getElementById('start-game').disabled = true;
                 document.getElementById('start-game').textContent = 'Waiting for bets...';
+                document.getElementById('autopilot-controls').style.display = 'block';
                 
                 // Add visual indicator for disabled state
                 document.getElementById('start-game').style.opacity = '0.6';
             }
+        }
+
+        // Autopilot variables
+        let autopilotActive = false;
+        let autopilotInterval = null;
+        let countdownInterval = null;
+        let countdownValue = 5;
+
+        function toggleAutopilot() {
+            const toggleButton = document.getElementById('autopilot-toggle');
+            const countdownDiv = document.getElementById('autopilot-countdown');
+            
+            if (!autopilotActive) {
+                // Start autopilot
+                autopilotActive = true;
+                toggleButton.textContent = '⏸️ Pause';
+                toggleButton.style.background = '#dc3545';
+                countdownDiv.style.display = 'block';
+                startAutopilotCountdown();
+            } else {
+                // Stop autopilot
+                autopilotActive = false;
+                toggleButton.textContent = '▶️ Start';
+                toggleButton.style.background = '#28a745';
+                countdownDiv.style.display = 'none';
+                clearInterval(autopilotInterval);
+                clearInterval(countdownInterval);
+            }
+        }
+
+        function startAutopilotCountdown() {
+            countdownValue = 5;
+            const countdownDiv = document.getElementById('autopilot-countdown');
+            
+            const updateCountdown = () => {
+                countdownDiv.textContent = countdownValue;
+                countdownValue--;
+                
+                if (countdownValue < 0) {
+                    // Deal card and reset countdown
+                    if (isHost && gameInProgress && autopilotActive) {
+                        socket.emit('dealCard');
+                    }
+                    countdownValue = 5;
+                }
+            };
+            
+            updateCountdown();
+            countdownInterval = setInterval(updateCountdown, 1000);
         }
 
         function animateCardFlip(cardData) {
@@ -1176,6 +1245,36 @@
                     setTimeout(() => {
                         copyGameButton.textContent = '📋 Copy';
                         copyGameButton.style.background = '#d4af37';
+                    }, 2000);
+                }
+            });
+        }
+
+        // Copy room ID functionality (leaderboard)
+        const copyLeaderboardButton = document.getElementById('copy-leaderboard-room-id');
+        if (copyLeaderboardButton) {
+            copyLeaderboardButton.addEventListener('click', async () => {
+                const leaderboardRoomId = document.getElementById('leaderboard-room-id');
+                const roomId = leaderboardRoomId.textContent;
+                
+                try {
+                    await navigator.clipboard.writeText(roomId);
+                    copyLeaderboardButton.textContent = '✅';
+                    setTimeout(() => {
+                        copyLeaderboardButton.textContent = '📋';
+                    }, 2000);
+                } catch (err) {
+                    // Fallback for older browsers
+                    const textArea = document.createElement('textarea');
+                    textArea.value = roomId;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                    
+                    copyLeaderboardButton.textContent = '✅';
+                    setTimeout(() => {
+                        copyLeaderboardButton.textContent = '📋';
                     }, 2000);
                 }
             });

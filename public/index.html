@@ -689,6 +689,7 @@
 
         function setupSocketEvents() {
             socket.on('roomCreated', (roomId) => {
+                console.log('Room created:', roomId);
                 currentRoomId = roomId;
                 roomIdInput.value = roomId;
                 
@@ -699,10 +700,12 @@
                 roomShareSection.style.display = 'block';
                 
                 const playerName = playerNameInput.value || 'Anonymous';
+                console.log('Attempting to join room:', { roomId, name: playerName, avatar: selectedAvatar });
                 socket.emit('joinRoom', { roomId, name: playerName, avatar: selectedAvatar });
             });
 
             socket.on('roomJoined', (roomId, playersData, hostId) => {
+                console.log('Room joined successfully!', roomId, playersData, hostId);
                 currentRoomId = roomId;
                 isHost = socket.id === hostId;
                 players = playersData;
@@ -730,6 +733,16 @@
                 players = playersData;
                 updatePlayerRankings();
                 updateBetStatus();
+            });
+
+            socket.on('error', (error) => {
+                console.error('Socket error:', error);
+                alert('Error: ' + error);
+            });
+
+            socket.on('connect_error', (error) => {
+                console.error('Connection error:', error);
+                alert('Connection error. Please refresh the page.');
             });
 
             socket.on('betPlaced', (playersData) => {

@@ -115,30 +115,69 @@
             height: 100vh;
             padding: 20px;
             flex-direction: row;
-            gap: 25px;
+            gap: 20px;
         }
 
-        /* Leaderboard */
-        #leaderboard {
-            width: 300px;
+        /* Left Game Area */
+        #left-game-area {
+            flex: 2;
+            background: rgba(255, 255, 255, 0.05);
+            border: 3px solid #d4af37;
+            border-radius: 20px;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            position: relative;
+        }
+
+        /* Right Control Panel */
+        #right-control-panel {
+            width: 350px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* Room Info Card */
+        #room-info-card {
             background: rgba(0,0,0,0.4);
             border: 3px solid #d4af37;
             border-radius: 20px;
-            padding: 25px;
+            padding: 20px;
+        }
+
+        /* Player Rankings Card */
+        #player-rankings-card {
+            background: rgba(0,0,0,0.4);
+            border: 3px solid #d4af37;
+            border-radius: 20px;
+            padding: 20px;
+            flex: 1;
             overflow-y: auto;
         }
 
-        #leaderboard h2 {
-            text-align: center;
-            color: #d4af37;
-            margin-bottom: 20px;
-            font-size: 1.5em;
+        /* Host Controls Card */
+        #host-controls-card {
+            background: rgba(0,0,0,0.4);
+            border: 3px solid #d4af37;
+            border-radius: 20px;
+            padding: 20px;
         }
 
-        #leaderboard h3 {
+        .card-title {
+            text-align: center;
             color: #d4af37;
-            margin: 15px 0 10px 0;
-            font-size: 1.1em;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+            font-weight: bold;
+        }
+
+        .card-subtitle {
+            color: #d4af37;
+            margin: 10px 0 8px 0;
+            font-size: 1em;
+            font-weight: bold;
         }
 
         .leaderboard-item {
@@ -150,24 +189,12 @@
             justify-content: space-between;
         }
 
-        /* Main Game Area */
-        #main-game-area {
-            flex: 1;
-            background: rgba(255, 255, 255, 0.05);
-            border: 3px solid #d4af37;
-            border-radius: 20px;
-            padding: 30px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            position: relative;
-        }
-
-        #main-game-area h1 {
+        #left-game-area h1 {
             color: #d4af37;
             margin-bottom: 20px;
-            font-size: 2.5em;
+            font-size: 2.2em;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            align-self: center;
         }
 
         /* Card Area */
@@ -469,18 +496,36 @@
             text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
         }
 
-        /* Host Controls */
-        .host-controls {
-            position: absolute;
-            top: 20px;
-            right: 20px;
+        /* Control Buttons */
+        .control-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .control-buttons button {
+            padding: 12px 20px;
+            font-size: 14px;
+            width: 100%;
+        }
+
+        .button-row {
             display: flex;
             gap: 10px;
         }
 
-        .host-controls button {
-            padding: 8px 15px;
-            font-size: 14px;
+        .button-row button {
+            flex: 1;
+        }
+
+        /* Leave Room Button */
+        #leave-room {
+            background: linear-gradient(145deg, #dc3545, #c82333);
+            margin-top: 10px;
+        }
+
+        #leave-room:hover {
+            background: linear-gradient(145deg, #c82333, #dc3545);
         }
 
         #bet-status-area {
@@ -545,7 +590,7 @@
             <div class="suit-buttons">
                 <div class="suit-button" data-suit="hearts">♥️ HEARTS</div>
                 <div class="suit-button" data-suit="diamonds">♦️ DIAMONDS</div>
-                <div class="suit-button" data-suit="clubs">♣️ CLUBS</div>
+                <div class="suit-button" data-suit="clubs">♣️ CLUBBIES</div>
                 <div class="suit-button" data-suit="spades">♠️ SPADES</div>
             </div>
             <input id="bet-amount" type="number" placeholder="Number of drinks" min="1" max="10" value="1">
@@ -559,47 +604,8 @@
 
     <!-- Main Game -->
     <div id="game-container">
-        <!-- Leaderboard -->
-        <div id="leaderboard">
-            <!-- Room ID Display -->
-            <div id="leaderboard-room-display" style="background: rgba(212, 175, 55, 0.1); border: 2px solid #d4af37; border-radius: 10px; padding: 15px; margin-bottom: 20px; display: none;">
-                <h3 style="color: #d4af37; margin-bottom: 10px; text-align: center;">🔗 Room Code</h3>
-                <div style="display: flex; align-items: center; gap: 10px; justify-content: center; flex-wrap: wrap;">
-                    <code id="leaderboard-room-id" style="background: rgba(0,0,0,0.4); padding: 8px 12px; border-radius: 5px; color: #fff; font-family: 'Courier New', monospace; font-size: 16px; letter-spacing: 2px; font-weight: bold; border: 1px solid #d4af37;"></code>
-                    <button id="copy-leaderboard-room-id" style="background: #d4af37; color: #0f4c3a; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-weight: bold; transition: all 0.3s; margin: 0; font-size: 12px;">📋</button>
-                </div>
-            </div>
-
-            <h2>🏆 Player Rankings 🏆</h2>
-            
-            <!-- Player rankings by wins/losses -->
-            <div id="player-rankings">
-                <div id="ranked-players"></div>
-            </div>
-            
-
-        </div>
-
-        <!-- Main Game Area -->
-        <div id="main-game-area">
-            <div class="host-controls">
-                <button id="add-bot">Add Bot</button>
-                <button id="start-game" style="display: none;">Start Race!</button>
-                <button id="reset-game" style="display: none;">Reset</button>
-                
-                <!-- Autopilot Controls -->
-                <div id="autopilot-controls" style="display: none; margin-top: 15px; padding: 15px; background: rgba(212, 175, 55, 0.1); border: 2px solid #d4af37; border-radius: 10px;">
-                    <h4 style="color: #d4af37; margin-bottom: 10px; text-align: center;">🤖 Autopilot Mode</h4>
-                    <div style="display: flex; align-items: center; gap: 10px; justify-content: center; flex-wrap: wrap;">
-                        <button id="autopilot-toggle" style="background: #28a745; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold;">▶️ Start</button>
-                        <div id="autopilot-countdown" style="background: rgba(0,0,0,0.4); padding: 8px 15px; border-radius: 5px; color: #fff; font-family: 'Courier New', monospace; font-size: 16px; font-weight: bold; border: 1px solid #d4af37; display: none;">5</div>
-                    </div>
-                    <p style="color: #ccc; font-size: 12px; margin-top: 8px; text-align: center;">Auto-deals cards every 5 seconds</p>
-                </div>
-            </div>
-
-
-
+        <!-- Left Game Area -->
+        <div id="left-game-area">
             <h1>🏇 Horse Card Race 🏇</h1>
             
             <!-- Card Area -->
@@ -619,6 +625,52 @@
             </div>
             
             <div id="results"></div>
+        </div>
+
+        <!-- Right Control Panel -->
+        <div id="right-control-panel">
+            <!-- Room Info Card -->
+            <div id="room-info-card">
+                <div class="card-title">🔗 Room Info</div>
+                <div style="text-align: center;">
+                    <div class="card-subtitle">Room Code:</div>
+                    <div style="display: flex; align-items: center; gap: 10px; justify-content: center; margin-bottom: 15px;">
+                        <code id="room-code-display" style="background: rgba(0,0,0,0.4); padding: 8px 12px; border-radius: 5px; color: #fff; font-family: 'Courier New', monospace; font-size: 16px; letter-spacing: 2px; font-weight: bold; border: 1px solid #d4af37;"></code>
+                        <button id="copy-room-code" style="background: #d4af37; color: #0f4c3a; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-weight: bold; transition: all 0.3s; margin: 0; font-size: 12px;">📋</button>
+                    </div>
+                    <button id="leave-room">🚪 Leave Room</button>
+                </div>
+            </div>
+
+            <!-- Player Rankings Card -->
+            <div id="player-rankings-card">
+                <div class="card-title">🏆 Player Rankings</div>
+                <div id="ranked-players"></div>
+            </div>
+
+            <!-- Host Controls Card -->
+            <div id="host-controls-card" style="display: none;">
+                <div class="card-title">👑 Host Controls</div>
+                
+                <div class="control-buttons">
+                    <button id="add-bot">🤖 Add Bot</button>
+                    
+                    <div class="button-row">
+                        <button id="start-game" style="display: none;">🏁 Start Race!</button>
+                        <button id="reset-game" style="display: none;">🔄 Reset</button>
+                    </div>
+                </div>
+                
+                <!-- Autopilot Controls -->
+                <div id="autopilot-controls" style="display: none; margin-top: 15px; padding: 15px; background: rgba(212, 175, 55, 0.1); border: 2px solid #d4af37; border-radius: 10px;">
+                    <div class="card-subtitle">🤖 Autopilot Mode</div>
+                    <div style="display: flex; align-items: center; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                        <button id="autopilot-toggle" style="background: #28a745; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold;">▶️ Start</button>
+                        <div id="autopilot-countdown" style="background: rgba(0,0,0,0.4); padding: 8px 15px; border-radius: 5px; color: #fff; font-family: 'Courier New', monospace; font-size: 16px; font-weight: bold; border: 1px solid #d4af37; display: none;">5</div>
+                    </div>
+                    <p style="color: #ccc; font-size: 12px; margin-top: 8px; text-align: center;">Auto-deals cards every 5 seconds</p>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -688,6 +740,7 @@
             document.getElementById('start-game').addEventListener('click', startGame);
             document.getElementById('reset-game').addEventListener('click', resetGame);
             document.getElementById('autopilot-toggle').addEventListener('click', toggleAutopilot);
+            document.getElementById('leave-room').addEventListener('click', leaveRoom);
 
             // Card deck click
             document.getElementById('card-deck').addEventListener('click', () => {
@@ -723,11 +776,9 @@
                 isHost = socket.id === hostId;
                 players = playersData;
                 
-                // Show room ID in leaderboard
-                const leaderboardRoomDisplay = document.getElementById('leaderboard-room-display');
-                const leaderboardRoomId = document.getElementById('leaderboard-room-id');
-                leaderboardRoomId.textContent = roomId;
-                leaderboardRoomDisplay.style.display = 'block';
+                // Show room ID in new layout
+                const roomCodeDisplay = document.getElementById('room-code-display');
+                roomCodeDisplay.textContent = roomId;
                 
                 loginPopup.style.display = 'none';
                 gameContainer.style.display = 'flex';
@@ -797,7 +848,7 @@
 
             socket.on('gameEnded', (winner) => {
                 gameInProgress = false;
-                results.innerHTML = `🏆 ${winner.toUpperCase()} WINS! 🏆`;
+                results.innerHTML = `🏆 ${getSuitName(winner)} WINS! 🏆`;
                 gameStats.totalGames++;
                 gameStats.horseWins[winner]++;
                 
@@ -899,6 +950,35 @@
                 updateBetStatus();
                 checkAllBetsPlaced();
             }, 1000);
+        }
+
+        function leaveRoom() {
+            if (confirm('Are you sure you want to leave the room?')) {
+                // Reset all game state
+                currentRoomId = null;
+                isHost = false;
+                gameInProgress = false;
+                players = [];
+                
+                // Stop autopilot if running
+                if (autopilotActive) {
+                    toggleAutopilot();
+                }
+                
+                // Hide game container and show login popup
+                gameContainer.style.display = 'none';
+                loginPopup.style.display = 'flex';
+                bettingPopup.style.display = 'none';
+                
+                // Reset form values
+                document.getElementById('room-id').value = '';
+                document.getElementById('room-share-section').style.display = 'none';
+                document.getElementById('host-controls-card').style.display = 'none';
+                
+                // Disconnect from current room
+                socket.disconnect();
+                socket.connect();
+            }
         }
 
         function setupStraightTrack() {
@@ -1028,8 +1108,9 @@
                 
                 if (isHost) {
                     document.getElementById('start-game').disabled = false;
-                    document.getElementById('start-game').textContent = 'Start Race!';
+                    document.getElementById('start-game').textContent = '🏁 Start Race!';
                     document.getElementById('start-game').style.background = 'linear-gradient(145deg, #4CAF50, #45a049)';
+                    document.getElementById('start-game').style.opacity = '1';
                 }
             } else {
                 // Still waiting for bets
@@ -1038,18 +1119,20 @@
                 
                 if (isHost) {
                     document.getElementById('start-game').disabled = true;
-                    document.getElementById('start-game').textContent = 'Waiting for bets...';
+                    document.getElementById('start-game').textContent = '⏳ Waiting for bets...';
                     document.getElementById('start-game').style.background = 'linear-gradient(145deg, #d4af37, #b8941f)';
+                    document.getElementById('start-game').style.opacity = '0.6';
                 }
             }
         }
 
         function showHostControls() {
             if (isHost) {
+                document.getElementById('host-controls-card').style.display = 'block';
                 document.getElementById('start-game').style.display = 'inline-block';
                 document.getElementById('reset-game').style.display = 'inline-block';
                 document.getElementById('start-game').disabled = true;
-                document.getElementById('start-game').textContent = 'Waiting for bets...';
+                document.getElementById('start-game').textContent = '⏳ Waiting for bets...';
                 document.getElementById('autopilot-controls').style.display = 'block';
                 
                 // Add visual indicator for disabled state
@@ -1167,7 +1250,7 @@
             Object.entries(gameStats.horseWins).forEach(([suit, wins]) => {
                 const item = document.createElement('div');
                 item.className = 'leaderboard-item';
-                item.innerHTML = `${getSuitSymbol(suit)} ${suit.toUpperCase()} <span>${wins} wins</span>`;
+                item.innerHTML = `${getSuitSymbol(suit)} ${getSuitName(suit)} <span>${wins} wins</span>`;
                 hotHorsesDiv.appendChild(item);
             });
         }
@@ -1180,6 +1263,11 @@
         function getSuitSymbol(suit) {
             const symbols = { hearts: '♥️', diamonds: '♦️', clubs: '♣️', spades: '♠️' };
             return symbols[suit] || '?';
+        }
+
+        function getSuitName(suit) {
+            const names = { hearts: 'HEARTS', diamonds: 'DIAMONDS', clubs: 'CLUBBIES', spades: 'SPADES' };
+            return names[suit] || suit.toUpperCase();
         }
 
         // Copy room ID functionality (login popup)
@@ -1275,6 +1363,36 @@
                     copyLeaderboardButton.textContent = '✅';
                     setTimeout(() => {
                         copyLeaderboardButton.textContent = '📋';
+                    }, 2000);
+                }
+            });
+        }
+
+        // Copy room code functionality (new layout)
+        const copyRoomCodeButton = document.getElementById('copy-room-code');
+        if (copyRoomCodeButton) {
+            copyRoomCodeButton.addEventListener('click', async () => {
+                const roomCodeDisplay = document.getElementById('room-code-display');
+                const roomId = roomCodeDisplay.textContent;
+                
+                try {
+                    await navigator.clipboard.writeText(roomId);
+                    copyRoomCodeButton.textContent = '✅';
+                    setTimeout(() => {
+                        copyRoomCodeButton.textContent = '📋';
+                    }, 2000);
+                } catch (err) {
+                    // Fallback for older browsers
+                    const textArea = document.createElement('textarea');
+                    textArea.value = roomId;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                    
+                    copyRoomCodeButton.textContent = '✅';
+                    setTimeout(() => {
+                        copyRoomCodeButton.textContent = '📋';
                     }, 2000);
                 }
             });
